@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Game of Life</title>
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
+		<style>
+			@import url('https://fonts.googleapis.com/css2?family=Silkscreen&display=swap');
+
+			html {
+				margin: 0;
+				padding: 0;
+				min-height: 100vh;
+			}
+
+			body {
+				margin: 0;
+				padding: 20px;
+				min-height: 100vh;
+				background-color: #292929;
+				background-image: url('back.jpg');
+				background-repeat: repeat;
+				background-position: 0 0;
+				background-attachment: fixed;
+				font-family: 'Silkscreen', sans-serif;
+				color: white;
+				font-size: 12px;
+				box-sizing: border-box;
+			}
+
+			input {
+				font-family: 'Silkscreen', sans-serif;
+			}
+
+			h1,
+			h2,
+			h3 {
+				margin: 0 0 10px 0;
+				color: #00ff3e;
+			}
+
+			#mainContainer {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				max-width: 1200px;
+				margin: 0 auto;
+				gap: 20px;
+			}
+
+			#appLayout {
+				display: flex;
+				flex-direction: row;
+				align-items: flex-start;
+				justify-content: center;
+				gap: 30px;
+				width: 100%;
+			}
+
+			#sidebar {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				width: 340px;
+				background: #202020;
+				border: 1px solid #383838;
+				border-radius: 0px;
+				padding: 20px;
+				box-sizing: border-box;
+				text-align: center;
+			}
+
+			#sidebar img {
+				border-radius: 0px;
+				width: 90px;
+				height: 90px;
+				object-fit: cover;
+				border: 2px solid #00ff3e;
+				margin-bottom: 12px;
+			}
+
+			#sidebar h1 {
+				font-size: 20px;
+				line-height: 1.2;
+			}
+
+			.instruction-text {
+				font-size: 10px;
+				line-height: 1.4;
+				color: #b0b0b0;
+				margin: 8px 0 16px 0;
+			}
+
+			.button-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 10px;
+				width: 100%;
+				margin-bottom: 16px;
+			}
+
+			.control-group {
+				width: 100%;
+				background: #181818;
+				border-radius: 0px;
+				border: 1px solid #2e2e2e;
+				padding: 10px;
+				box-sizing: border-box;
+				margin-bottom: 12px;
+			}
+
+			.control-group h3 {
+				font-size: 11px;
+				margin-bottom: 6px;
+			}
+
+			#speedControl {
+				border-radius: 0px;
+				border: 1px solid #383838;
+				background: #242424;
+				color: #00ff3e;
+				padding: 4px;
+			}
+
+			#gameArea {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			#gridContainer {
+				display: grid;
+				border: 2px solid #383838;
+				border-radius: 0px;
+				background-color: #141414;
+				box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+			}
+
+			.cell {
+				width: 15px;
+				height: 15px;
+				background-color: #181818;
+				border: 1px solid #242424;
+				border-radius: 0px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				font-size: 11px;
+				color: #ffcf00;
+				user-select: none;
+				cursor: pointer;
+			}
+
+			.cell.alive {
+				background-color: #2b2b2b;
+			}
+
+			.myButton {
+				box-shadow: 2px 3px 0px 0px #e184f3;
+				background: linear-gradient(to bottom, #c123de 5%, #a20dbd 100%);
+				background-color: #c123de;
+				border-radius: 0px;
+				border: 1px solid #a511c0;
+				display: inline-block;
+				cursor: pointer;
+				color: #ffffff;
+				font-family: inherit;
+				font-size: 11px;
+				padding: 8px 10px;
+				text-decoration: none;
+				text-shadow: 0px 1px 0px #9b14b3;
+				width: 100%;
+				box-sizing: border-box;
+
+				&:hover {
+					background: linear-gradient(to bottom, #a20dbd 5%, #c123de 100%);
+					background-color: #a20dbd;
+				}
+
+				&:active {
+					position: relative;
+					top: 1px;
+				}
+			}
+
+			#gameInfo {
+				width: 100%;
+				max-width: 1120px;
+				background: #202020;
+				border: 1px solid #383838;
+				border-radius: 0px;
+				padding: 24px;
+				box-sizing: border-box;
+				margin-top: 10px;
+			}
+
+			#gameInfo hr {
+				border: 0;
+				border-top: 1px solid #383838;
+				margin: 10px 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="mainContainer">
+			<div id="appLayout">
+				<div id="sidebar">
+					<img src="conway.png" alt="John Conway">
+					<h1>Conway's Game of Life</h1>
+					<p class="instruction-text">
+						Click cells to toggle alive/dead or click <strong>Random Seed</strong>, then click <strong>Evolve</strong>.
+					</p>
+
+					<div class="button-grid">
+						<button id="start" class="myButton">Evolve</button>
+						<button id="stop" class="myButton">Stop</button>
+						<button id="reset" class="myButton">Reset</button>
+						<button id="randomize" class="myButton">Random Seed</button>
+					</div>
+
+					<div class="control-group">
+						<h3><label for="speedControl">Speed (ms):</label></h3>
+						<input style="width: 80px; text-align: center;" type="number" id="speedControl" value="250">
+					</div>
+
+					<div class="control-group" style="margin-bottom: 0;">
+						<h3>Generations</h3>
+						<span id="generationCount" style="color:#00ff3e; font-size: 16px;">0</span>
+					</div>
+				</div>
+
+				<div id="gameArea">
+					<div id="gridContainer"></div>
+				</div>
+			</div>
+
+			<div id="gameInfo">
+				<h2>About The Game of Life</h2>
+				<hr>
+				<p>The Game of Life, also known simply as Life, is not a game in the traditional sense but a cellular automaton devised by the British mathematician John Horton Conway in 1970. This fascinating creation is a zero-player game, meaning its evolution is determined by its initial state (or 'seed'), requiring no further input from human players. Life is played out on a grid of square cells, each of which can be in one of two possible states: alive or dead. Every cell interacts with its eight neighbors, which are the cells that are horizontally, vertically, or diagonally adjacent.</p>
+				<h3>Rules of the Game</h3>
+				<hr>
+				<p>The rules of Life are simple but lead to an extraordinary range of potential outcomes:</p>
+				<ul>
+					<li>
+						<strong>Birth</strong>: A dead cell with exactly three live neighbors becomes a live cell (as if by reproduction).
+					</li>
+					<li>
+						<strong>Survival</strong>: A live cell with two or three live neighbors stays alive for the next generation.
+					</li>
+					<li>
+						<strong>Death</strong>: In all other cases, a cell dies or remains dead (due to overpopulation or loneliness).
+					</li>
+				</ul>
+				<h3>History and Impact</h3>
+				<hr>
+				<p>Since its inception, the Game of Life has attracted considerable interest because of the surprising ways in which the patterns can evolve. It has connections to various areas of mathematical research, including systems theory, computer science, and theoretical biology. Life's popularity was boosted by its coverage in Martin Gardner's column in the October 1970 issue of Scientific American magazine. It is known for helping to bring the concepts of cellular automata to the attention of a wider audience.</p>
+				<h3>Philosophical and Educational Implications</h3>
+				<hr>
+				<p>The Game of Life serves as a powerful illustration of how complex patterns and behaviors can emerge from simple rules. It's a metaphor for the unpredictability and intricacy of life itself. In educational settings, it's used to teach students about emergent behaviors, simulation, and mathematical concepts. Philosophically, it challenges our understanding of "life" and "intelligence" in a simulated environment and raises intriguing questions about the nature of life and the universe. It subtly echoes the idea that simple laws, followed rigorously, can lead to complex and unforeseen outcomes, much like the universe we live in.</p>
+				<h3>Conclusion</h3>
+				<hr>
+				<p>The Game of Life stands as a testament to the beauty of mathematics and the fascinating complexities of emergent systems. It encourages exploration and experimentation, offering a boundless playground for both the curious and the scholarly. Whether used as a teaching tool or pondered as a philosophical artifact, Life continues to captivate and inspire, transcending the boundaries of science and art.</p>
+			</div>
+		</div>
+		<br>
+		<script>
+			document.addEventListener('DOMContentLoaded', () => {
+				const gridWidth = 50;
+				const gridHeight = 33;
+				const gridContainer = document.getElementById('gridContainer');
+				let grid = [];
+				let intervalId = null;
+				let generationCount = 0;
+				createGrid(gridWidth, gridHeight);
+				document.getElementById('start').addEventListener('click', startSimulation);
+				document.getElementById('stop').addEventListener('click', stopSimulation);
+				document.getElementById('reset').addEventListener('click', resetSimulation);
+				document.getElementById('randomize').addEventListener('click', randomizeGrid);
+
+				function startSimulation() {
+					if (intervalId === null) {
+						intervalId = setInterval(nextGeneration, document.getElementById('speedControl').value);
+					}
+				}
+
+				function stopSimulation() {
+					clearInterval(intervalId);
+					intervalId = null;
+				}
+
+				function resetSimulation() {
+					stopSimulation();
+					createGrid(gridWidth, gridHeight);
+					generationCount = 0;
+					updateGenerationCount();
+				}
+
+				function createGrid(width, height) {
+					gridContainer.innerHTML = '';
+					gridContainer.style.gridTemplateColumns = `repeat(${width}, 15px)`;
+					gridContainer.style.gridTemplateRows = `repeat(${height}, 15px)`;
+					grid = Array.from({
+						length: height
+					}, () => Array.from({
+						length: width
+					}, createCell));
+				}
+
+				function createCell() {
+					const cell = document.createElement('div');
+					cell.classList.add('cell');
+					cell.addEventListener('click', () => toggleCellState(cell));
+					gridContainer.appendChild(cell);
+					return cell;
+				}
+
+				function toggleCellState(cell, newState) {
+					if (newState !== undefined) {
+						if (newState) {
+							cell.classList.add('alive');
+							cell.innerText = '👽';
+						} else {
+							cell.classList.remove('alive');
+							cell.innerText = '';
+						}
+					} else {
+						cell.classList.toggle('alive');
+						cell.innerText = cell.classList.contains('alive') ? '👽' : '';
+					}
+				}
+
+				function randomizeGrid() {
+					grid.forEach(row => row.forEach(cell => {
+						toggleCellState(cell, Math.random() > 0.85);
+					}));
+				}
+
+				function nextGeneration() {
+					let changesMade = false;
+					const nextGen = grid.map((row, i) => row.map((cell, j) => {
+						const liveNeighbors = countLiveNeighbors(i, j);
+						const cellAlive = cell.classList.contains('alive');
+						const nextState = liveNeighbors === 3 || (cellAlive && liveNeighbors === 2);
+						if (cellAlive !== nextState) {
+							changesMade = true;
+						}
+						return nextState;
+					}));
+					if (!changesMade) {
+						stopSimulation();
+						return;
+					}
+					updateGrid(nextGen);
+					generationCount++;
+					updateGenerationCount();
+				}
+
+				function countLiveNeighbors(row, col) {
+					let count = 0;
+					for (let i = -1; i <= 1; i++) {
+						for (let j = -1; j <= 1; j++) {
+							if (i === 0 && j === 0) continue;
+							const x = (row + i + gridHeight) % gridHeight;
+							const y = (col + j + gridWidth) % gridWidth;
+							if (grid[x][y].classList.contains('alive')) {
+								count++;
+							}
+						}
+					}
+					return count;
+				}
+
+				function updateGrid(nextGen) {
+					grid.forEach((row, i) => row.forEach((cell, j) => {
+						toggleCellState(cell, nextGen[i][j]);
+					}));
+				}
+
+				function updateGenerationCount() {
+					document.getElementById('generationCount').textContent = generationCount;
+				}
+			});
+		</script>
+		<br>
+	</body>
+</html>
